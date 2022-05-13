@@ -6,6 +6,7 @@ import { UpgradeDAI } from "./UpgradeDAI";
 import { Flex, Text, Box, Heading, Button } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { DowngradeDAI } from "./DowngradeDAI";
+import { CreateFlow } from "./CreateFlow";
 
 const web3Modal = new Web3Modal({
   cacheProvider: true,
@@ -44,7 +45,7 @@ function App() {
 
     const signer = sf.createSigner({ web3Provider: provider });
 
-    //fDAI on ropsten
+    //fDAI on mumbai
     const DAI = new ethers.Contract(
       "0x15F0Ca26781C3852f8166eD2ebce5D18265cceb7",
       daiABI,
@@ -117,6 +118,7 @@ function App() {
             <Box>
               <UpgradeDAI />
               <DowngradeDAI />
+              <CreateFlow />
             </Box>
           </Box>
         )}

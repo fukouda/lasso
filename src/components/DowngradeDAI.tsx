@@ -8,9 +8,7 @@ async function daiDowngrade(amount: string) {
 
   const signer = sf.createSigner({ web3Provider: provider });
 
-  const DAIx = await sf.loadWrapperSuperToken(
-    "0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f"
-  );
+  const DAIx = await sf.loadWrapperSuperToken("fDAIx");
 
   try {
     console.log(`Downgrading $${amount} fDAIx...`);
@@ -23,8 +21,8 @@ async function daiDowngrade(amount: string) {
       console.log(
         `
         Congrats - you've just downgraded DAI to DAIx!
-        You can see this tx at https://ropsten.etherscan.io/tx/${tx.transactionHash}
-        Network: Ropsten
+        You can see this tx at https://mumbai.polygonscan.com/tx/${tx.transactionHash}
+        Network: Mumbai
       `
       );
     });

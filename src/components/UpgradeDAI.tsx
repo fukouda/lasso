@@ -16,7 +16,7 @@ async function daiApprove(amount: string) {
 
   const signer = sf.createSigner({ web3Provider: provider });
 
-  //fDAI on ropsten
+  //fDAI on mumbai
   const DAI = new ethers.Contract(
     "0x15F0Ca26781C3852f8166eD2ebce5D18265cceb7",
     daiABI,
@@ -29,7 +29,7 @@ async function daiApprove(amount: string) {
       ethers.utils.parseEther(amount.toString())
     ).then(function (tx: any) {
       console.log(
-        `Congrats, you just approved your DAI spend. You can see this tx at https://ropsten.etherscan.io/tx/${tx.hash}`
+        `Congrats, you just approved your DAI spend. You can see this tx at  https://mumbai.polygonscan.com/tx/${tx.hash}`
       );
     });
   } catch (error) {
@@ -42,9 +42,7 @@ async function daiUpgrade(amount: string) {
 
   const signer = sf.createSigner({ web3Provider: provider });
 
-  const DAIx = await sf.loadWrapperSuperToken(
-    "0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f"
-  );
+  const DAIx = await sf.loadWrapperSuperToken("fDAIx");
 
   try {
     console.log(`upgrading $${amount} DAI to DAIx`);
