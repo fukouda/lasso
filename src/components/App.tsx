@@ -7,6 +7,7 @@ import { Flex, Text, Box, Heading, Button } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { DowngradeDAI } from "./DowngradeDAI";
 import { CreateFlow } from "./CreateFlow";
+import { DeleteFlow } from "./DeleteFlow";
 
 const web3Modal = new Web3Modal({
   cacheProvider: true,
@@ -119,6 +120,7 @@ function App() {
               <UpgradeDAI />
               <DowngradeDAI />
               <CreateFlow />
+              <DeleteFlow />
             </Box>
           </Box>
         )}

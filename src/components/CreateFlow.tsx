@@ -82,7 +82,7 @@ export const CreateFlow = () => {
   };
 
   return (
-    <Box mt={10}>
+    <Box mt={6}>
       <Heading as="h2" size="2xl" mt={5} mb={3}>
         Setup a Stream
       </Heading>

@@ -73,7 +73,7 @@ export const UpgradeDAI = () => {
   };
 
   return (
-    <Box mt={10}>
+    <Box mt={6}>
       <Heading as="h2" size="2xl" mt={5} mb={3}>
         Upgrade DAI to DAIx
       </Heading>

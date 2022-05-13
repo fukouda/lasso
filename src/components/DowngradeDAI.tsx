@@ -41,7 +41,7 @@ export const DowngradeDAI = () => {
   };
 
   return (
-    <Box my={10}>
+    <Box mt={6}>
       <Heading as="h2" size="2xl" mb={3}>
         Downgrade DAIx to DAI
       </Heading>
