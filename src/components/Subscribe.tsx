@@ -14,7 +14,7 @@ const web3Modal = new Web3Modal({
   providerOptions: {},
 });
 
-function App() {
+function Subscribe() {
   const [provider, setProvider] = useState<any>();
   const [account, setAccount] = useState<string>();
   const [error, setError] = useState<string>("");
@@ -129,4 +129,4 @@ function App() {
   );
 }
 
-export default App;
+export default Subscribe;
