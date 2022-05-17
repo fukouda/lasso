@@ -9,6 +9,7 @@ import {
   FormControl,
 } from "@chakra-ui/react";
 import { daiABI, web3Provider } from "../config/config";
+import { calculateMonthlyPrice } from "../utils/superfluid";
 
 //will be used to approve super token contract to spend DAI
 async function daiApprove(amount: string) {
@@ -96,23 +97,6 @@ export const CreateFlow = () => {
   const [isApproveButtonLoading, setIsApproveButtonLoading] = useState(false);
   const [isBatchCallButtonLoading, setIsBatchCallButtonLoading] =
     useState(false);
-
-  function calculateMonthlyPrice(amount: string): number {
-    if (typeof Number(amount) !== "number" || isNaN(Number(amount)) === true) {
-      alert("You can only calculate a flowRate based on a number");
-      return 0;
-    } else if (typeof Number(amount) === "number") {
-      if (Number(amount) === 0) {
-        return 0;
-      }
-      const amountInWei = ethers.BigNumber.from(amount);
-      const monthlyAmount = ethers.utils.formatEther(amountInWei.toString());
-      const calculatedFlowRate = parseFloat(monthlyAmount) * 3600 * 24 * 30;
-      return calculatedFlowRate;
-    }
-
-    return 0;
-  }
 
   const handleApproveAmountChange = (e: any) => {
     setApproveAmount(() => ([e.target.name] = e.target.value));
