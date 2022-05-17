@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import Web3Modal from "web3modal";
 import "../css/App.css";
 import { daiABI, web3Provider } from "../config/config";
-import { UpgradeDAI } from "./UpgradeDAI";
 import { Flex, Text, Box, Heading, Button } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import { DowngradeDAI } from "./DowngradeDAI";
@@ -117,10 +116,9 @@ function Subscribe() {
               <Text fontSize="xl">DAIx balance: {DAIxBalance}</Text>
             </Flex>
             <Box>
-              <UpgradeDAI />
-              <DowngradeDAI />
               <CreateFlow />
               <DeleteFlow />
+              <DowngradeDAI />
             </Box>
           </Box>
         )}
