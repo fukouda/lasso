@@ -7,6 +7,7 @@ import {
   calculateMonthlyPrice,
   calculateSecondsFromDateToNow,
 } from "../utils/superfluid";
+import SignButton from "./SignButton";
 
 async function getFlowToMerchant(receiver: string) {
   const { provider, sf, accounts } = await web3Provider();
@@ -90,6 +91,7 @@ function MyAccount() {
             } DAI`}</Text>
           </Flex>
         ))}
+        <SignButton />
       </Flex>
     </Center>
   );

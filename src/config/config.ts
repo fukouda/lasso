@@ -19,6 +19,7 @@ export const web3Provider = async () => {
   });
 
   return {
+    rawProvider,
     provider,
     accounts,
     sf,
