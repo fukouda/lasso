@@ -30,10 +30,13 @@ const db: Firestore = getFirestore(app);
 export async function getServices(address: string) {
   const subscriptionsCol = collection(db, "services");
   const subscriptionsSnapshot = await getDocs(subscriptionsCol);
-  const subscriptionList = subscriptionsSnapshot.docs.map((doc) => doc.data());
+  const subscriptionList = subscriptionsSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    data: doc.data(),
+  }));
 
   return subscriptionList.filter(
-    (subscription) => subscription["owner"] === address
+    (subscription) => subscription.data["owner"] === address
   );
 }
 
@@ -76,14 +79,43 @@ export async function deleteService(subscriptionId: string) {
 export async function getSubscriptions(address: string) {
   const subscriptionsCol = collection(db, "subscriptions");
   const subscriptionsSnapshot = await getDocs(subscriptionsCol);
-  const subscriptionList = subscriptionsSnapshot.docs.map((doc) => doc.data());
+  const subscriptionList = subscriptionsSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    data: doc.data(),
+  }));
 
   return subscriptionList.filter(
-    (subscription) => subscription["subscriber"] === address
+    (subscription) => subscription.data["subscriber"] === address
+  );
+}
+
+export async function getSubscriptionsByServiceId(serviceId: string) {
+  const subscriptionsCol = collection(db, "subscriptions");
+  const subscriptionsSnapshot = await getDocs(subscriptionsCol);
+  const subscriptionList = subscriptionsSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    data: doc.data(),
+  }));
+
+  console.log(subscriptionList, serviceId);
+
+  return subscriptionList.filter(
+    (subscription) => subscription.data["serviceId"] === serviceId
   );
 }
 
 export async function createSubscription(subscription: Subscription) {
   const docRef = await addDoc(collection(db, "subscriptions"), subscription);
   return docRef.id;
+}
+
+export async function toggleSubscription(subscriptionId: string) {
+  const docRef = doc(db, "subscriptions", subscriptionId);
+  try {
+    await updateDoc(docRef, { active: false });
+    return true;
+  } catch (e: any) {
+    console.log("Error deleting service", e);
+    return false;
+  }
 }
