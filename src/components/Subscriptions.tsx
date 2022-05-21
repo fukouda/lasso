@@ -1,5 +1,7 @@
+import { CloseIcon } from "@chakra-ui/icons";
 import {
   Box,
+  Button,
   Container,
   Heading,
   SimpleGrid,
@@ -15,7 +17,8 @@ import {
 import { DocumentData } from "firebase/firestore/lite";
 import { useEffect, useState } from "react";
 import useWalletProvider from "../hooks/useWalletProvider";
-import { getSubscriptions } from "../utils/firebase";
+import { toTitleCase } from "../utils";
+import { getSubscriptions, toggleSubscription } from "../utils/firebase";
 
 function Subscriptions() {
   return GeneralSubscriptions();
@@ -46,6 +49,15 @@ function GeneralSubscriptions() {
     getSubscriptionList();
   }, [, account]);
 
+  const handleCancel = async (subscriptionId: string) => {
+    try {
+      const subscriptions = await toggleSubscription(subscriptionId);
+      getSubscriptionList();
+    } catch {
+      setError(true);
+    }
+  };
+
   return (
     <Box position={"relative"}>
       <Container
@@ -66,9 +78,10 @@ function GeneralSubscriptions() {
                     <Th>Service</Th>
                     <Th>Status</Th>
                     <Th>Type</Th>
-                    <Th>Subscribers</Th>
-                    <Th>Earnings - last month</Th>
-                    <Th>Earnings - total</Th>
+                    <Th>Monthly Rate</Th>
+                    <Th>Paid So Far</Th>
+                    <Th>Date Activated</Th>
+                    <Th></Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -76,12 +89,36 @@ function GeneralSubscriptions() {
                     subscriptionList.map((subscription) => {
                       return (
                         <Tr>
-                          <Td>{subscription["title"]}</Td>
-                          <Td>Active</Td>
-                          <Td>{subscription["type"]}</Td>
-                          <Td>124</Td>
-                          <Td>{subscription["monthlyRate"]}</Td>
-                          <Td>0</Td>
+                          <Td>{subscription.data["serviceTitle"]}</Td>
+                          <Td>
+                            {subscription.data["active"]
+                              ? "Active"
+                              : "Inactive"}
+                          </Td>
+                          <Td>{toTitleCase(subscription.data["type"])}</Td>
+                          <Td>{subscription.data["monthlyRate"]}</Td>
+                          <Td>124.0{/* REPLACE */}</Td>
+                          <Td>
+                            {subscription.data["date"].toDate().toDateString()}
+                          </Td>
+                          <Td>
+                            {subscription.data["active"] ? (
+                              <Button
+                                fontFamily={"heading"}
+                                w={"full"}
+                                bgGradient={"linear(to-r, red.400,pink.400)"}
+                                color={"white"}
+                                _hover={{
+                                  bgColor: "#0D0D0D",
+                                  boxShadow: "xl",
+                                }}
+                                leftIcon={<CloseIcon />}
+                                onClick={() => handleCancel(subscription.id)}
+                              >
+                                Cancel
+                              </Button>
+                            ) : null}
+                          </Td>
                         </Tr>
                       );
                     })}

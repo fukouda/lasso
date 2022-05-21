@@ -9,8 +9,11 @@ export type Service = {
 };
 
 export type Subscription = {
-  service: string;
+  serviceId: string;
+  serviceTitle: string;
   subscriber: string;
+  owner: string;
+  type: string;
   handle: string;
   active: boolean;
   monthlyRate: number;

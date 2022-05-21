@@ -153,8 +153,11 @@ function Subscribe() {
   const handleSubscribe = async () => {
     if (!account || !id || !service) return;
     const subscriptionData = {
-      service: id,
+      serviceId: id,
+      serviceTitle: service["title"],
+      type: service["subscriptionType"],
       subscriber: account,
+      owner: service["owner"],
       handle,
       active: true,
       monthlyRate: service["monthlyRate"],
