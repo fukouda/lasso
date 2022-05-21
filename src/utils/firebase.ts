@@ -9,8 +9,9 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  getDoc,
 } from "firebase/firestore/lite";
-import { Subscription } from "./types";
+import { Service, Subscription } from "./types";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAUEr1qni9X-pcb5XzAEXjAUfshS2605wc",
@@ -26,23 +27,33 @@ const app: FirebaseApp = initializeApp(firebaseConfig);
 const db: Firestore = getFirestore(app);
 // const analytics: Analytics = getAnalytics(app);
 
-export async function getSubscriptions() {
-  const subscriptionsCol = collection(db, "subscriptions");
+export async function getServices(address: string) {
+  const subscriptionsCol = collection(db, "services");
   const subscriptionsSnapshot = await getDocs(subscriptionsCol);
   const subscriptionList = subscriptionsSnapshot.docs.map((doc) => doc.data());
-  return subscriptionList;
+
+  return subscriptionList.filter(
+    (subscription) => subscription["owner"] === address
+  );
 }
 
-export async function createSubscription(subscription: Subscription) {
-  const docRef = await addDoc(collection(db, "subscriptions"), subscription);
+export async function getService(id: string) {
+  const docRef = doc(db, "services", id);
+  const docSnap = await getDoc(docRef);
+  console.log(docSnap);
+  return docSnap.data();
+}
+
+export async function createService(service: Service) {
+  const docRef = await addDoc(collection(db, "services"), service);
   return docRef.id;
 }
 
-export async function updateSubscription(
+export async function updateService(
   subscriptionId: string,
-  updatedValues: Partial<Subscription>
+  updatedValues: Partial<Service>
 ) {
-  const docRef = doc(db, "subscriptions", subscriptionId);
+  const docRef = doc(db, "services", subscriptionId);
   try {
     await updateDoc(docRef, updatedValues);
     return true;
@@ -52,12 +63,27 @@ export async function updateSubscription(
   }
 }
 
-export async function deleteSubscription(subscriptionId: string) {
+export async function deleteService(subscriptionId: string) {
   try {
     await deleteDoc(doc(db, "subscriptions", subscriptionId));
     return true;
   } catch (e: any) {
-    console.log("Error deleting subscription");
+    console.log("Error deleting service");
     return false;
   }
+}
+
+export async function getSubscriptions(address: string) {
+  const subscriptionsCol = collection(db, "subscriptions");
+  const subscriptionsSnapshot = await getDocs(subscriptionsCol);
+  const subscriptionList = subscriptionsSnapshot.docs.map((doc) => doc.data());
+
+  return subscriptionList.filter(
+    (subscription) => subscription["subscriber"] === address
+  );
+}
+
+export async function createSubscription(subscription: Subscription) {
+  const docRef = await addDoc(collection(db, "subscriptions"), subscription);
+  return docRef.id;
 }
