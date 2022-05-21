@@ -10,34 +10,22 @@ import {
   InputGroup,
   InputRightElement,
   Select,
+  InputRightAddon,
 } from "@chakra-ui/react";
 import { BigNumber, ethers } from "ethers";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { web3Provider } from "../config/config";
-import { createSubscription } from "../utils/firebase";
+import { DAIxLogo } from "../assets/logos";
+import useWalletProvider from "../hooks/useWalletProvider";
+import { createService } from "../utils/firebase";
 
-export default function Home() {
-  const [provider, setProvider] = useState<any>();
-  const [account, setAccount] = useState<string>();
-  const [error, setError] = useState<string>("");
-
+export default function Create() {
   const [subscriptionName, setSubscriptionName] = useState<string>("");
+  const [subscriptionType, setSubscriptionType] = useState<string>("");
   const [monthlyRate, setMonthlyRate] = useState<number>(0);
-  const [currency, setCurrency] = useState<string>("");
+  const { provider, account, connectWallet } = useWalletProvider();
 
   const navigate = useNavigate();
-
-  const connectWallet = async () => {
-    try {
-      const { provider, accounts } = await web3Provider();
-      setProvider(provider);
-      setAccount(accounts[0]);
-    } catch (error) {
-      console.log(error);
-      setError("something went wrong!");
-    }
-  };
 
   function calculateFlowRate(amountInEther: number) {
     if (
@@ -60,6 +48,10 @@ export default function Home() {
     setSubscriptionName(() => ([e.target.name] = e.target.value));
   };
 
+  const handleSubscriptionTypeChange = (e: any) => {
+    setSubscriptionType(() => ([e.target.name] = e.target.value));
+  };
+
   const handleMonthlyRateChange = (e: any) => {
     setMonthlyRate(() => ([e.target.name] = e.target.value));
   };
@@ -69,13 +61,15 @@ export default function Home() {
     const subscriptionData = {
       owner: account,
       title: subscriptionName,
+      active: true,
       subscriptionType: "discord",
+      date: new Date(),
       monthlyRate,
       flowRate: calculateFlowRate(monthlyRate)?.toString(),
     };
 
     console.log(subscriptionData);
-    const id = await createSubscription(subscriptionData);
+    const id = await createService(subscriptionData);
 
     navigate(`/subscribe/${id}`);
   };
@@ -86,9 +80,9 @@ export default function Home() {
         maxW={"7xl"}
         columns={{ base: 1, md: 2 }}
         spacing={{ base: 10, lg: 32 }}
-        py={{ base: 10, sm: 20, lg: 32 }}
+        py={{ base: 8, sm: 12, lg: 20 }}
       >
-        <Stack spacing={{ base: 10, md: 20 }}>
+        <Stack py={{ base: 8, sm: 12, lg: 20 }} spacing={{ base: 10, md: 20 }}>
           <Heading
             lineHeight={1.1}
             fontSize={{ base: "3xl", sm: "4xl", md: "5xl", lg: "6xl" }}
@@ -101,35 +95,35 @@ export default function Home() {
           </Heading>
         </Stack>
         <Stack
-          bg={"white"}
           rounded={"xl"}
-          border={"solid 2px #D9D9D9"}
+          border={"solid 1px #8C8C8C"}
           p={{ base: 4, sm: 6, md: 8 }}
           spacing={{ base: 8 }}
           maxW={{ lg: "lg" }}
         >
           <Stack spacing={4}>
             <Heading
-              color={"gray.800"}
               lineHeight={1.1}
               fontSize={{ base: "2xl", sm: "3xl", md: "4xl" }}
             >
               Get Started 🚀
             </Heading>
-            <Text color={"gray.500"} fontSize={{ base: "sm", sm: "md" }}>
+            <Text fontSize={{ base: "sm", sm: "md" }}>
               Set up your one-click subscription stream
             </Text>
           </Stack>
           <Box as={"form"} mt={10}>
             <Stack spacing={4}>
-              <Text color={"gray.500"} fontSize={{ base: "sm", sm: "md" }}>
-                What service are you providing?
-              </Text>
+              <Text fontSize={{ base: "sm", sm: "md" }}>Title</Text>
               <Input
                 placeholder="e.g Paid Private Discord"
                 onChange={handleSubscriptionNameChange}
               />
-              <Text color={"gray.500"} fontSize={{ base: "sm", sm: "md" }}>
+              <Text fontSize={{ base: "sm", sm: "md" }}>
+                What service are you providing?
+              </Text>
+              <Input placeholder="e.g Paid Private Discord" />
+              <Text fontSize={{ base: "sm", sm: "md" }}>
                 How much are you charging per cycle?
               </Text>
               <InputGroup>
@@ -137,12 +131,14 @@ export default function Home() {
                   placeholder="e.g. 100.0"
                   onChange={handleMonthlyRateChange}
                 />
-                <InputRightElement
+                <InputRightAddon
+                  bgColor={"#333333"}
+                  color={"#FFF"}
                   children={
-                    <Select size="md" placeholder="DAI">
-                      <option value="option1">USDC</option>
-                      <option value="option2">USDT</option>
-                    </Select>
+                    <>
+                      <DAIxLogo />
+                      &nbsp; DAI / Month
+                    </>
                   }
                 />
               </InputGroup>
@@ -168,18 +164,27 @@ export default function Home() {
                   fontFamily={"heading"}
                   mt={8}
                   w={"full"}
-                  bgColor={"#0D0D0D"}
+                  bgGradient={"linear(to-r, red.400,pink.400)"}
                   color={"white"}
                   onClick={handleSubmit}
                   _hover={{
-                    bgGradient: "linear(to-r, red.400,pink.400)",
+                    bgColor: "#0D0D0D",
                     boxShadow: "xl",
                   }}
                 >
-                  Submit
+                  Create Service
                 </Button>
-                <Text color={"gray.500"} fontSize={{ base: "sm", sm: "md" }}>
-                  Connected Wallet: {account}
+                <Text
+                  color={"gray.500"}
+                  mt={2}
+                  textAlign={"center"}
+                  fontSize={{ base: "sm", sm: "md" }}
+                >
+                  Connected Wallet:{" "}
+                  {`${account.substring(0, 6)}...${account.substring(
+                    account.length - 4,
+                    account.length
+                  )}`}
                 </Text>
               </>
             )}
