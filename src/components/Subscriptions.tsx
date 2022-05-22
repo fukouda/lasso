@@ -14,18 +14,22 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
+import { IWeb3FlowInfo } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
 import { DocumentData } from "firebase/firestore/lite";
 import { useEffect, useState } from "react";
+import { web3Provider } from "../config/config";
 import useWalletProvider from "../hooks/useWalletProvider";
 import { toTitleCase } from "../utils";
 import { getSubscriptions, toggleSubscription } from "../utils/firebase";
+import { calculateSecondsFromDateToNow } from "../utils/superfluid";
 
 function Subscriptions() {
   return GeneralSubscriptions();
 }
 
 function GeneralSubscriptions() {
-  const { provider, account, connectWallet } = useWalletProvider();
+  const { provider, account, connectWallet, framework } = useWalletProvider();
   const [subscriptionList, setSubscriptionList] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -38,8 +42,16 @@ function GeneralSubscriptions() {
     }
     try {
       const subscriptions = await getSubscriptions(account);
+      subscriptions.forEach(async (subscription) => {
+        subscription.data["active"]
+          ? (subscription.data["paidSoFar"] = await getFlowToMerchant(
+              subscription.data["owner"]
+            ))
+          : (subscription.data["paidSoFar"] = 0);
+      });
       setSubscriptionList(subscriptions);
       setLoading(false);
+      console.log(subscriptions);
     } catch {
       setError(true);
     }
@@ -49,10 +61,70 @@ function GeneralSubscriptions() {
     getSubscriptionList();
   }, [, account]);
 
-  const handleCancel = async (subscriptionId: string) => {
+  const getFlowToMerchant = async (receiver: string) => {
+    if (framework && account) {
+      const DAIx = await framework.loadWrapperSuperToken("fDAIx");
+
+      const flowToMerchant = await framework.cfaV1.getFlow({
+        superToken: DAIx.address,
+        sender: account,
+        receiver,
+        providerOrSigner: provider,
+      });
+
+      console.log(account);
+      console.log(receiver);
+
+      console.log("flowToMerchant: ", flowToMerchant);
+
+      return (
+        calculateSecondsFromDateToNow(flowToMerchant.timestamp) *
+        parseFloat(ethers.utils.formatEther(flowToMerchant.flowRate))
+      ).toFixed(5);
+    }
+  };
+
+  const deleteFlow = async (recipient: string) => {
+    if (framework && account) {
+      const signer = framework.createSigner({ web3Provider: provider });
+
+      const DAIx = await framework.loadWrapperSuperToken("fDAIx");
+
+      try {
+        const deleteFlowOperation = framework.cfaV1.deleteFlow({
+          sender: account,
+          receiver: recipient,
+          superToken: DAIx.address,
+        });
+
+        await deleteFlowOperation.exec(signer);
+
+        console.log(
+          `Congrats - you've just deleted your money stream!
+         Network: Mumbai
+         Super Token: DAIx
+         Sender: ${account}
+         Receiver: ${recipient}
+      `
+        );
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    }
+  };
+
+  const handleCancel = async (subscription: DocumentData) => {
     try {
-      const subscriptions = await toggleSubscription(subscriptionId);
-      getSubscriptionList();
+      await deleteFlow(subscription.data["owner"])
+        .then(async () => {
+          const subscriptions = await toggleSubscription(subscription.id);
+          getSubscriptionList();
+        })
+        .catch((error) => {
+          setError(true);
+          console.error(error);
+        });
     } catch {
       setError(true);
     }
@@ -86,9 +158,9 @@ function GeneralSubscriptions() {
                 </Thead>
                 <Tbody>
                   {!!subscriptionList.length &&
-                    subscriptionList.map((subscription) => {
+                    subscriptionList.map((subscription, index) => {
                       return (
-                        <Tr>
+                        <Tr key={index}>
                           <Td>{subscription.data["serviceTitle"]}</Td>
                           <Td>
                             {subscription.data["active"]
@@ -97,7 +169,7 @@ function GeneralSubscriptions() {
                           </Td>
                           <Td>{toTitleCase(subscription.data["type"])}</Td>
                           <Td>{subscription.data["monthlyRate"]}</Td>
-                          <Td>124.0{/* REPLACE */}</Td>
+                          <Td>{subscription.data["paidSoFar"]}</Td>
                           <Td>
                             {subscription.data["date"].toDate().toDateString()}
                           </Td>
@@ -113,7 +185,7 @@ function GeneralSubscriptions() {
                                   boxShadow: "xl",
                                 }}
                                 leftIcon={<CloseIcon />}
-                                onClick={() => handleCancel(subscription.id)}
+                                onClick={() => handleCancel(subscription)}
                               >
                                 Cancel
                               </Button>

@@ -25,6 +25,9 @@ import { Service } from "../utils/types";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { DocumentData } from "firebase/firestore/lite";
 import { toTitleCase } from "../utils";
+import useWalletProvider from "../hooks/useWalletProvider";
+import { Framework } from "@superfluid-finance/sdk-core";
+import { calculateFlowRateFromMonthlyPrice } from "../utils/superfluid";
 
 const web3Modal = new Web3Modal({
   cacheProvider: true,
@@ -34,6 +37,7 @@ const web3Modal = new Web3Modal({
 function Subscribe() {
   const [provider, setProvider] = useState<any>();
   const [account, setAccount] = useState<string>();
+  const [framework, setFramework] = useState<Framework>();
   const [error, setError] = useState<string>("");
   const [DAIBalance, setDAIBalance] = useState("");
   const [DAIxBalance, setDAIxBalance] = useState("");
@@ -70,9 +74,10 @@ function Subscribe() {
 
   const connectWallet = async () => {
     try {
-      const { provider, accounts } = await web3Provider();
+      const { provider, accounts, sf } = await web3Provider();
       setProvider(provider);
       setAccount(accounts[0]);
+      setFramework(sf);
     } catch (error) {
       console.log(error);
       setError("something went wrong!");
@@ -100,9 +105,7 @@ function Subscribe() {
       signer
     );
 
-    const DAIx = await sf.loadWrapperSuperToken(
-      "0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f"
-    );
+    const DAIx = await sf.loadWrapperSuperToken("fDAIx");
 
     setDAIBalance(ethers.utils.formatEther(await DAI.balanceOf(accounts[0])));
     setDAIxBalance(
@@ -150,6 +153,41 @@ function Subscribe() {
     setHandle(() => ([e.target.name] = e.target.value));
   };
 
+  const createNewFlow = async (recipient: string, flowRate: string) => {
+    if (framework && account) {
+      const signer = framework.createSigner({ web3Provider: provider });
+
+      const DAIx = await framework.loadSuperToken("fDAIx");
+
+      try {
+        const createFlowOperation = framework.cfaV1.createFlow({
+          flowRate: flowRate,
+          receiver: recipient,
+          superToken: DAIx.address,
+        });
+
+        await createFlowOperation.exec(signer);
+
+        console.log(
+          `Congrats - you've just created a money stream!
+      View Your Stream At: https://app.superfluid.finance/dashboard/${recipient}
+      Network: Mumbai
+      Super Token: DAIx
+      Sender: ${account}
+      Receiver: ${recipient},
+      FlowRate: ${flowRate}
+      `
+        );
+      } catch (error) {
+        setError(
+          "Hmmm, your transaction threw an error. Make sure that this stream does not already exist, and that you've entered a valid Ethereum address!"
+        );
+        console.error(error);
+        throw error;
+      }
+    }
+  };
+
   const handleSubscribe = async () => {
     if (!account || !id || !service) return;
     const subscriptionData = {
@@ -165,9 +203,20 @@ function Subscribe() {
     };
 
     console.log(subscriptionData);
-    const serviceId = await createSubscription(subscriptionData);
 
-    navigate(`/subscribe/${serviceId}`);
+    await createNewFlow(
+      service["owner"],
+      calculateFlowRateFromMonthlyPrice(service["monthlyRate"])
+    )
+      .then(async () => {
+        const serviceId = await createSubscription(subscriptionData);
+
+        navigate(`/subscriptions/${serviceId}`);
+      })
+      .catch((error) => {
+        setError("something went wrong!");
+        console.error(error);
+      });
   };
 
   return (

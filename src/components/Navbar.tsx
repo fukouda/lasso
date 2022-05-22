@@ -60,15 +60,17 @@ function Navbar() {
       signer
     );
 
-    const DAIx = await framework.loadWrapperSuperToken(
-      "0x5D8B4C2554aeB7e86F387B4d6c00Ac33499Ed01f"
-    );
+    const DAIx = await framework.loadWrapperSuperToken("fDAIx");
 
     setDAIBalance(ethers.utils.formatEther(await DAI.balanceOf(account)));
     setDAIxBalance(
-      ethers.utils.formatEther(
-        await DAIx.balanceOf({ account: account, providerOrSigner: signer })
+      parseFloat(
+        ethers.utils.formatEther(
+          await DAIx.balanceOf({ account: account, providerOrSigner: signer })
+        )
       )
+        .toFixed(2)
+        .toString()
     );
   };
 
@@ -128,7 +130,7 @@ function Navbar() {
                   paddingY={"2"}
                   justifyContent={"space-between"}
                   textAlign={"center"}
-                  minWidth={"165px"}
+                  minWidth={"170px"}
                 >
                   <DAIxLogo /> {DAIxBalance} DAIx
                 </Flex>

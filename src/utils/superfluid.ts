@@ -17,6 +17,29 @@ export function calculateMonthlyPrice(amount: string): number {
   return 0;
 }
 
+export function calculateFlowRateFromMonthlyPrice(
+  monthlyPrice: string
+): string {
+  if (
+    typeof Number(monthlyPrice) !== "number" ||
+    isNaN(Number(monthlyPrice)) === true
+  ) {
+    alert("You can only calculate a flowRate based on a number");
+    return "0";
+  } else if (typeof Number(monthlyPrice) === "number") {
+    if (Number(monthlyPrice) === 0) {
+      return "0";
+    }
+    const calculatedFlowRate = (
+      Number(monthlyPrice) /
+      (3600 * 24 * 30)
+    ).toFixed(19);
+    return ethers.utils.parseEther(calculatedFlowRate).toString();
+  }
+
+  return "0";
+}
+
 export function calculateSecondsFromDateToNow(date: Date) {
   const now = new Date();
   console.log(now.getTime());

@@ -18,6 +18,7 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
+import { ethers } from "ethers";
 import { DocumentData } from "firebase/firestore/lite";
 import { useEffect, useState } from "react";
 import {
@@ -33,6 +34,7 @@ import {
   getServices,
   getSubscriptionsByServiceId,
 } from "../utils/firebase";
+import { calculateSecondsFromDateToNow } from "../utils/superfluid";
 
 function Services() {
   let { id } = useParams();
@@ -43,8 +45,9 @@ function Services() {
 }
 
 function ServiceById(id: any) {
-  const { provider, account, connectWallet } = useWalletProvider();
+  const { provider, account, connectWallet, framework } = useWalletProvider();
   const [subscriptionList, setSubscriptionList] = useState<DocumentData[]>([]);
+  const [netFlow, setNetFlow] = useState("");
   const [service, setService] = useState<DocumentData>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -53,10 +56,16 @@ function ServiceById(id: any) {
     try {
       console.log(id);
       const subscriptions = await getSubscriptionsByServiceId(id.id);
-      const service = await getService(id.id);
+      subscriptions.forEach(async (subscription) => {
+        subscription.data["active"]
+          ? (subscription.data["earnings"] = await getFlowToMerchant(
+              subscription.data["subscriber"]
+            ))
+          : (subscription.data["earnings"] = 0);
+      });
+      setService(await getService(id.id));
       console.log(subscriptions);
       setSubscriptionList(subscriptions);
-      setService(service);
       setLoading(false);
     } catch {
       setError(true);
@@ -64,8 +73,48 @@ function ServiceById(id: any) {
   };
 
   useEffect(() => {
-    getSubscriptionList();
+    const fetchData = async () => {
+      getSubscriptionList();
+      setNetFlow(await getNetFlow());
+    };
+
+    fetchData();
   }, [, account]);
+
+  const getFlowToMerchant = async (sender: string) => {
+    if (framework && account) {
+      const DAIx = await framework.loadWrapperSuperToken("fDAIx");
+
+      const flowToMerchant = await framework.cfaV1.getFlow({
+        superToken: DAIx.address,
+        sender,
+        receiver: account,
+        providerOrSigner: provider,
+      });
+
+      return (
+        calculateSecondsFromDateToNow(flowToMerchant.timestamp) *
+        parseFloat(ethers.utils.formatEther(flowToMerchant.flowRate))
+      ).toFixed(5);
+    }
+  };
+
+  const getNetFlow = async () => {
+    if (framework && account) {
+      const DAIx = await framework.loadWrapperSuperToken("fDAIx");
+
+      return parseFloat(
+        ethers.utils.formatEther(
+          await framework.cfaV1.getNetFlow({
+            superToken: DAIx.address,
+            account: account,
+            providerOrSigner: provider,
+          })
+        )
+      ).toFixed(8);
+    }
+    return "";
+  };
 
   return (
     <Box position={"relative"}>
@@ -115,7 +164,7 @@ function ServiceById(id: any) {
                   <Text color={"gray.500"} fontSize={{ base: "sm", sm: "md" }}>
                     Total Earnings
                   </Text>
-                  123.4 DAI
+                  {netFlow} DAI
                 </Heading>
               </Box>
             </HStack>
@@ -147,7 +196,7 @@ function ServiceById(id: any) {
                               : "Inactive"}
                           </Td>
                           <Td>{subscription.data["monthlyRate"]}</Td>
-                          <Td>124.0{/* REPLACE */}</Td>
+                          <Td>{subscription.data["earnings"]}</Td>
                           <Td>
                             {subscription.data["date"].toDate().toDateString()}
                           </Td>
@@ -165,7 +214,7 @@ function ServiceById(id: any) {
 }
 
 function GeneralServices() {
-  const { provider, account, connectWallet } = useWalletProvider();
+  const { provider, account, connectWallet, framework } = useWalletProvider();
   const [subscriptionList, setSubscriptionList] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -182,6 +231,11 @@ function GeneralServices() {
     }
     try {
       const subscriptions = await getServices(account);
+      subscriptions.forEach(async (subscription) => {
+        subscription.data["active"]
+          ? (subscription.data["earnings"] = await getFlowToMerchant())
+          : (subscription.data["earnings"] = 0);
+      });
       setSubscriptionList(subscriptions);
       setLoading(false);
     } catch {
@@ -192,6 +246,23 @@ function GeneralServices() {
   useEffect(() => {
     getSubscriptionList();
   }, [, account]);
+
+  const getFlowToMerchant = async () => {
+    if (framework && account) {
+      const DAIx = await framework.loadWrapperSuperToken("fDAIx");
+
+      const flowToMerchant = await framework.cfaV1.getAccountFlowInfo({
+        superToken: DAIx.address,
+        account,
+        providerOrSigner: provider,
+      });
+
+      return (
+        calculateSecondsFromDateToNow(flowToMerchant.timestamp) *
+        parseFloat(ethers.utils.formatEther(flowToMerchant.flowRate))
+      ).toFixed(19);
+    }
+  };
 
   return (
     <Box position={"relative"}>
@@ -243,7 +314,7 @@ function GeneralServices() {
                             {toTitleCase(service.data["subscriptionType"])}
                           </Td>
                           <Td>{service.data["monthlyRate"]}</Td>
-                          <Td>124.0{/* REPLACE */}</Td>
+                          <Td>{service.data["earnings"]}</Td>
                           <Td>
                             <Link
                               as={ReactRouterLink}
