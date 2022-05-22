@@ -40,6 +40,13 @@ export async function getServices(address: string) {
   );
 }
 
+export async function getServiceById(id: string) {
+  const docRef = doc(db, "services", id);
+  const docSnap = await getDoc(docRef);
+  console.log(docSnap);
+  return docSnap.data();
+}
+
 export async function getService(address: string) {
   const subscriptionsCol = collection(db, "services");
   const subscriptionsSnapshot = await getDocs(subscriptionsCol);

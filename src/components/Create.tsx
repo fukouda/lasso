@@ -122,7 +122,14 @@ export default function Create() {
               <Text fontSize={{ base: "sm", sm: "md" }}>
                 What service are you providing?
               </Text>
-              <Input placeholder="e.g Paid Private Discord" />
+              <Select
+                placeholder="Select type of service"
+                _placeholder={{ color: "#141414" }}
+              >
+                <option value="option1">Discord</option>
+                <option value="option2">Twitter</option>
+                <option value="option3">Telegram</option>
+              </Select>
               <Text fontSize={{ base: "sm", sm: "md" }}>
                 How much are you charging per cycle?
               </Text>

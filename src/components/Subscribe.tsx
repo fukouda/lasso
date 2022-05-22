@@ -20,7 +20,11 @@ import { DowngradeDAI } from "./DowngradeDAI";
 import { CreateFlow } from "./CreateFlow";
 import { DeleteFlow } from "./DeleteFlow";
 import { DAIxLogo } from "../assets/logos";
-import { createSubscription, getService } from "../utils/firebase";
+import {
+  createSubscription,
+  getService,
+  getServiceById,
+} from "../utils/firebase";
 import { Service } from "../utils/types";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { DocumentData } from "firebase/firestore/lite";
@@ -55,7 +59,7 @@ function Subscribe() {
       return;
     }
     try {
-      const service = await getService(id);
+      const service = await getServiceById(id);
       if (!service) {
         setError("Error loading service");
         return;
@@ -310,7 +314,12 @@ function Subscribe() {
                 />
               </Stack>
               <Stack>
-                <Text fontSize={{ base: "sm", sm: "md" }}>Escrow Amount</Text>
+                <Text fontSize={{ base: "sm", sm: "md" }}>
+                  Escrow Amount (in DAI)
+                </Text>
+                <Text fontSize="xl">
+                  {(service && (service["monthlyRate"] / 720) * 4)?.toFixed(2)}
+                </Text>
               </Stack>
               <Stack>
                 <Text fontSize={{ base: "sm", sm: "md" }}>
