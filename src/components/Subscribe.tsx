@@ -202,8 +202,6 @@ function Subscribe() {
       date: new Date(),
     };
 
-    console.log(subscriptionData);
-
     await createNewFlow(
       service["owner"],
       calculateFlowRateFromMonthlyPrice(service["monthlyRate"])

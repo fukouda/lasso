@@ -15,7 +15,7 @@ export default function App() {
         <Route path="/create" element={<Home />} />
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/subscriptions/:id" element={<Subscriptions />} />
-        <Route path="/services" element={<Services />} />
+        <Route path="/service" element={<Services />} />
         <Route path="/services/:id" element={<Services />} />
         <Route path="/subscribe/:id" element={<Subscribe />} />
         <Route path="/my-account" element={<MyAccount />} />

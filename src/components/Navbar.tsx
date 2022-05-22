@@ -22,7 +22,7 @@ import useWalletProvider from "../hooks/useWalletProvider";
 import { daiABI } from "../config/config";
 import { ethers } from "ethers";
 
-const Links = ["Create", "Subscriptions", "Services"];
+const Links = ["Create", "Subscriptions", "Service"];
 
 const NavLink = ({ children }: { children: string }) => (
   <Link

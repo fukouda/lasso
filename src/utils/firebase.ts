@@ -40,11 +40,19 @@ export async function getServices(address: string) {
   );
 }
 
-export async function getService(id: string) {
-  const docRef = doc(db, "services", id);
-  const docSnap = await getDoc(docRef);
-  console.log(docSnap);
-  return docSnap.data();
+export async function getService(address: string) {
+  const subscriptionsCol = collection(db, "services");
+  const subscriptionsSnapshot = await getDocs(subscriptionsCol);
+  const subscriptionList = subscriptionsSnapshot.docs.map((doc) => doc.data());
+
+  const result = subscriptionList.find(
+    (subscription) => subscription["owner"] === address
+  );
+
+  console.log(result);
+  return subscriptionList.find(
+    (subscription) => subscription["owner"] === address
+  );
 }
 
 export async function createService(service: Service) {
@@ -89,7 +97,7 @@ export async function getSubscriptions(address: string) {
   );
 }
 
-export async function getSubscriptionsByServiceId(serviceId: string) {
+export async function getSubscriptionsByOwner(address: string) {
   const subscriptionsCol = collection(db, "subscriptions");
   const subscriptionsSnapshot = await getDocs(subscriptionsCol);
   const subscriptionList = subscriptionsSnapshot.docs.map((doc) => ({
@@ -97,10 +105,8 @@ export async function getSubscriptionsByServiceId(serviceId: string) {
     data: doc.data(),
   }));
 
-  console.log(subscriptionList, serviceId);
-
   return subscriptionList.filter(
-    (subscription) => subscription.data["serviceId"] === serviceId
+    (subscription) => subscription.data["owner"] === address
   );
 }
 

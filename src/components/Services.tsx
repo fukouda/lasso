@@ -32,19 +32,15 @@ import { toTitleCase } from "../utils";
 import {
   getService,
   getServices,
-  getSubscriptionsByServiceId,
+  getSubscriptionsByOwner,
 } from "../utils/firebase";
 import { calculateSecondsFromDateToNow } from "../utils/superfluid";
 
 function Services() {
-  let { id } = useParams();
-  if (!!id) {
-    return <ServiceById id={id} />;
-  }
-  return <GeneralServices />;
+  return <ServiceById />;
 }
 
-function ServiceById(id: any) {
+function ServiceById() {
   const { provider, account, connectWallet, framework } = useWalletProvider();
   const [subscriptionList, setSubscriptionList] = useState<DocumentData[]>([]);
   const [netFlow, setNetFlow] = useState("");
@@ -53,9 +49,9 @@ function ServiceById(id: any) {
   const [error, setError] = useState(false);
 
   const getSubscriptionList = async () => {
+    if (!account) return;
     try {
-      console.log(id);
-      const subscriptions = await getSubscriptionsByServiceId(id.id);
+      const subscriptions = await getSubscriptionsByOwner(account);
       subscriptions.forEach(async (subscription) => {
         subscription.data["active"]
           ? (subscription.data["earnings"] = await getFlowToMerchant(
@@ -63,7 +59,7 @@ function ServiceById(id: any) {
             ))
           : (subscription.data["earnings"] = 0);
       });
-      setService(await getService(id.id));
+      setService(await getService(account));
       console.log(subscriptions);
       setSubscriptionList(subscriptions);
       setLoading(false);
@@ -95,7 +91,7 @@ function ServiceById(id: any) {
       return (
         calculateSecondsFromDateToNow(flowToMerchant.timestamp) *
         parseFloat(ethers.utils.formatEther(flowToMerchant.flowRate))
-      ).toFixed(5);
+      ).toFixed(2);
     }
   };
 
@@ -111,7 +107,7 @@ function ServiceById(id: any) {
             providerOrSigner: provider,
           })
         )
-      ).toFixed(8);
+      ).toFixed(2);
     }
     return "";
   };
