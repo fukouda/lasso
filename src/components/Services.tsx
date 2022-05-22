@@ -121,6 +121,9 @@ function ServiceById() {
         py={{ base: 2 }}
       >
         <Stack py={{ base: 8, sm: 12, lg: 20 }} spacing={{ base: 8 }}>
+          <Heading fontSize={{ base: "5xl" }}>
+            {service && service["title"]}
+          </Heading>
           <Stack
             py={{ base: 8, sm: 12, lg: 20 }}
             spacing={{ base: 10, md: 20 }}
