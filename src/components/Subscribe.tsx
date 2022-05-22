@@ -206,10 +206,10 @@ function Subscribe() {
       date: new Date(),
     };
 
-    await createNewFlow(
-      service["owner"],
-      calculateFlowRateFromMonthlyPrice(service["monthlyRate"])
-    )
+    console.log(service["owner"]);
+    console.log(service["monthlyRate"]);
+
+    await createNewFlow(service["owner"], service["flowRate"])
       .then(async () => {
         const serviceId = await createSubscription(subscriptionData);
 
